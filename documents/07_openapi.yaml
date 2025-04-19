@@ -1,0 +1,221 @@
+openapi: 3.0.0
+info:
+  title: piinxi API
+  version: 0.1.0
+  description: "piinxi MVP向け API 定義（Flutterクライアント用）"
+
+servers:
+  - url: https://api.piinxi.app
+
+
+
+paths:
+  /users:
+    post:
+      summary: 新しいユーザーを作成する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nickname]
+              properties:
+                nickname:
+                  type: string
+                avatar_url:
+                  type: string
+                fcm_token:
+                  type: string
+      responses:
+        '201':
+          description: ユーザー作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/me:
+    get:
+      summary: 自分のユーザー情報を取得する
+      responses:
+        '200':
+          description: 自分の情報
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      summary: 自分のプロフィールを更新する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  type: string
+                avatar_url:
+                  type: string
+                fcm_token:
+                  type: string
+      responses:
+        '200':
+          description: 更新後のユーザー情報
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      summary: 自分のアカウントを削除する
+      description: 関連するnestメンバー情報・送信履歴なども連鎖削除される
+      responses:
+        '204':
+          description: アカウント削除成功（レスポンスボディなし）
+
+  /nests:
+    post:
+      summary: 新しいnestを作成する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                color_theme:
+                  type: string
+                icon:
+                  type: string
+                is_private:
+                  type: boolean
+      responses:
+        '201':
+          description: nest作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Nest'
+    get:
+      summary: 自分が参加しているnest一覧を取得する
+      responses:
+        '200':
+          description: nest一覧
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Nest'
+
+  /nests/{nest_id}/join:
+    post:
+      summary: nestに参加する
+      parameters:
+        - in: path
+          name: nest_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 参加完了
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  
+  /nests/{nest_id}/piins:
+    get:
+      summary: nest内の最新piinを取得する（ログではなく表示用）
+      parameters:
+        - in: path
+          name: nest_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: piin一覧
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Piin'
+
+  /piins:
+    post:
+      summary: piinを送信する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nest_id]
+              properties:
+                nest_id:
+                  type: string
+                tone:
+                  type: string
+                icon:
+                  type: string
+      responses:
+        '201':
+          description: piin送信成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Piin'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        nickname:
+          type: string
+        avatar_url:
+          type: string
+
+    Nest:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        color_theme:
+          type: string
+        icon:
+          type: string
+        is_private:
+          type: boolean
+
+    Piin:
+      type: object
+      properties:
+        id:
+          type: string
+        sender_id:
+          type: string
+        nest_id:
+          type: string
+        tone:
+          type: string
+        icon:
+          type: string
+        sent_at:
+          type: string
+          format: date-time
